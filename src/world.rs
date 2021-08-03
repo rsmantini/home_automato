@@ -1,9 +1,4 @@
-use slotmap::{new_key_type, SlotMap};
- 
-new_key_type! {
-    struct ScheduleKey;
-}
-
+#[derive(Copy, Clone, PartialEq, Default)]
 struct Schedule {
     pub hour: i8,
     pub min: i8,
@@ -11,68 +6,82 @@ struct Schedule {
     pub repeat: bool,
 }
 
-new_key_type! {
-    struct ActivationTimeKey;
-}
+#[derive(Copy, Clone, PartialEq, Default)]
 struct ActivationTime {
-    pub seconds_to_acivate: u32
+    pub seconds_to_acivate: u32,
 }
 
+#[derive(Copy, Clone, PartialEq, Default)]
 struct Entity {
     id: i32,
-    schedule: Option<ScheduleKey>,
-    activation_time: Option<ActivationTimeKey>
 }
 
 struct World {
     entity_count: i32,
-    schedules: SlotMap<ScheduleKey, Schedule>,
-    activation_times: SlotMap<ActivationTimeKey, ActivationTime>,
-    entities: Vec<Entity>
+    schedules: Vec<(i32, Schedule)>,
+    activation_times: Vec<(i32, ActivationTime)>,
+}
+
+trait Component: Sized {
+    fn get<'a>(world: &'a mut World) -> &'a mut Vec<(i32, Self)>;
+}
+
+impl Component for Schedule {
+    fn get<'a>(world: &'a mut World) -> &'a mut Vec<(i32, Self)> {
+        &mut world.schedules
+    }
+}
+
+impl Component for ActivationTime {
+    fn get<'a>(world: &'a mut World) -> &'a mut Vec<(i32, Self)> {
+        &mut world.activation_times
+    }
 }
 
 impl World {
     pub fn new() -> World {
-        World{entity_count: 0, schedules: SlotMap::with_key(), activation_times: SlotMap::with_key(), entities: Vec::new()}
-    }
-    pub fn new_entity(&mut self) -> i32 {
-        let id = self.entity_count;
-        self.entities.push(Entity{id: id, schedule: None, activation_time: None});
-        self.entity_count += 1;
-        id
-    }
-    pub fn add_schedule(&mut self, entity_id: i32) -> Option<&Schedule> {
-        let opt_entity = self.entities.iter_mut().find(|x| x.id == entity_id);
-        match opt_entity {
-            None => None,
-            Some(entity) => {
-                let key = match entity.schedule {
-                    Some(k) => k,
-                    None => {
-                        let key = self.schedules.insert(Schedule{hour: 0, min: 0, sec: 0, repeat: false});
-                        entity.schedule = Some(key);
-                        key
-                    } 
-                };
-                self.schedules.get(key)
-            }
+        World {
+            entity_count: 0,
+            schedules: Vec::new(),
+            activation_times: Vec::new(),
         }
     }
-    pub fn add_activation_time(&mut self, entity_id: i32) -> Option<&ActivationTime> {
-        let opt_entity = self.entities.iter_mut().find(|x| x.id == entity_id);
-        match opt_entity {
+
+    pub fn new_entity(&mut self) -> Entity {
+        let id = self.entity_count;
+        self.entity_count += 1;
+        if self.entity_count == core::i32::MAX {
+            panic!("maximum number of entities reached");
+        }
+        Entity { id }
+    }
+
+    pub fn remove_entity(&mut self, entity: Entity) {
+        self.schedules.retain(|x| x.0 != entity.id);
+        self.activation_times.retain(|x| x.0 != entity.id);
+    }
+
+    pub fn add_component<V: Component + Default>(&mut self, entity: Entity) -> &mut V {
+        let components = V::get(self);
+        if let Some(i) = (0..components.len()).find(|&i| components[i].0 == entity.id) {
+            &mut components[i].1
+        } else {
+            components.push((entity.id, V::default()));
+            &mut components.last_mut().unwrap().1
+        }
+    }
+
+    pub fn remove_component<V: Component>(&mut self, entity: Entity) {
+        let components = V::get(self);
+        components.retain(|x| x.0 != entity.id);
+    }
+
+    pub fn get_component<V: Component>(&mut self, entity: Entity) -> Option<&mut V> {
+        let components = V::get(self);
+        let tuple = components.iter_mut().find(|x| x.0 == entity.id);
+        match tuple {
+            Some(t) => Some(&mut t.1),
             None => None,
-            Some(entity) => {
-                let key = match entity.activation_time{
-                    Some(k) => k,
-                    None => {
-                        let key = self.activation_times.insert(ActivationTime{seconds_to_acivate: 0});
-                        entity.activation_time = Some(key);
-                        key
-                    } 
-                };
-                self.activation_times.get(key)
-            }
         }
     }
 }

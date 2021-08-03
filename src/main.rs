@@ -15,12 +15,9 @@ fn event_loop(rx: mpsc::Receiver<i32>) {
     }
 }
 
-
 #[launch]
 fn rocket() -> _ {
     let (tx, rx) = mpsc::sync_channel(100);
     std::thread::spawn(move || event_loop(rx));
-    rocket::build()
-    .manage(tx)
-    .mount("/", routes![index])
+    rocket::build().manage(tx).mount("/", routes![index])
 }
