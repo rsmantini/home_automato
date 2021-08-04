@@ -1,6 +1,6 @@
 use rocket::*;
 use std::sync::mpsc;
-mod world;
+mod ecs;
 
 #[get("/<number>")]
 fn index(tx: &State<mpsc::SyncSender<i32>>, number: i32) -> String {
@@ -10,8 +10,10 @@ fn index(tx: &State<mpsc::SyncSender<i32>>, number: i32) -> String {
 }
 
 fn event_loop(rx: mpsc::Receiver<i32>) {
+    let mut world = ecs::world::World::new();
     loop {
-        println!("recieved {}", rx.recv().unwrap());
+        //println!("recieved {}", rx.recv().unwrap());
+        world.update();
     }
 }
 
