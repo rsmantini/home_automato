@@ -3,6 +3,13 @@ name = "home_automation"
 version = "0.1.0"
 edition = "2018"
 
+[lib]
+name = "ecs"
+path = "src/ecs/ecs.rs"
+
+[[bin]]
+name = "home_automation"
+path = "src/main.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

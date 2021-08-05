@@ -1,9 +1,13 @@
 use super::components::*;
 use std::any::Any;
 
-#[derive(Copy, Clone, PartialEq, Default)]
+#[derive(Copy, Clone, PartialEq, Default, Debug)]
 pub struct Entity {
     id: i32,
+}
+
+pub trait Component: Sized {
+    fn get<'a>(world: &'a mut World) -> &'a mut Vec<(i32, Self)>;
 }
 
 pub trait System: Any {
@@ -18,7 +22,6 @@ pub struct World {
     activation_times: Vec<(i32, activation_time::ActivationTime)>,
     systems: Vec<Box<dyn System>>
 }
-
 
 impl PartialEq for Box<dyn System> {
     fn eq(&self, other: &Box<dyn System>) -> bool {
@@ -37,11 +40,6 @@ impl Component for schedule::Schedule {
         &mut world.schedules
     }
 }
-
-trait Component: Sized {
-    fn get<'a>(world: &'a mut World) -> &'a mut Vec<(i32, Self)>;
-}
-
 
 impl World {
     pub fn new() -> World {
