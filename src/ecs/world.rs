@@ -12,7 +12,6 @@ pub trait Component: Sized {
 
 pub trait System: Any {
     fn process(&mut self); 
-    fn box_eq(&self, other: &dyn Any) -> bool;
     fn as_any(&self) -> &dyn Any;
 }
 
@@ -21,12 +20,6 @@ pub struct World {
     schedules: Vec<(i32, schedule::Schedule)>,
     activation_times: Vec<(i32, activation_time::ActivationTime)>,
     systems: Vec<Box<dyn System>>
-}
-
-impl PartialEq for Box<dyn System> {
-    fn eq(&self, other: &Box<dyn System>) -> bool {
-        self.box_eq(other.as_any())
-    }
 }
 
 impl Component for activation_time::ActivationTime {
