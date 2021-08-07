@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, PartialEq, Default, Debug)]
+#[derive(Clone, PartialEq, Default, Debug)]
 pub struct Schedule {
     pub hour: i8,
     pub min: i8,

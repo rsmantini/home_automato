@@ -1,6 +1,8 @@
+use ecs::components::*;
 use rocket::*;
 use std::sync::mpsc;
-use ecs;
+
+mod systems;
 
 #[get("/<number>")]
 fn index(tx: &State<mpsc::SyncSender<i32>>, number: i32) -> String {
@@ -9,13 +11,57 @@ fn index(tx: &State<mpsc::SyncSender<i32>>, number: i32) -> String {
     s
 }
 
-fn event_loop(rx: mpsc::Receiver<i32>) {
+fn event_loop(_rx: mpsc::Receiver<i32>) {
     let mut world = ecs::world::World::new();
-    let s =  ecs::systems::scheduler::Scheduler::default();
-    world.add_system(s);
+    let s = systems::Scheduler::default();
+    let e0 = world.new_entity();
+    world.add_component(
+        e0,
+        Schedule {
+            hour: 1,
+            min: 0,
+            sec: 0,
+            repeat: false,
+        },
+    );
+    world.add_component(
+        e0,
+        ActivationTime {
+            seconds_to_acivate: 10,
+        },
+    );
+
+    let e1 = world.new_entity();
+    world.add_component(
+        e1,
+        Schedule {
+            hour: 2,
+            min: 0,
+            sec: 0,
+            repeat: false,
+        },
+    );
+
+    let e2 = world.new_entity();
+    world.add_component(
+        e2,
+        Schedule {
+            hour: 3,
+            min: 0,
+            sec: 0,
+            repeat: false,
+        },
+    );
+    world.add_component(
+        e2,
+        ActivationTime {
+            seconds_to_acivate: 30,
+        },
+    );
+
     loop {
         //println!("recieved {}", rx.recv().unwrap());
-        world.update();
+        s.process(&mut world);
     }
 }
 
