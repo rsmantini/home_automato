@@ -5,9 +5,15 @@ pub struct Entity {
     id: i32,
 }
 
+impl Entity {
+    pub fn id(&self) -> i32 {
+        self.id
+    }
+}
+
 pub struct World {
     entity_count: i32,
-    entities: Vec<Entity>,
+    pub entities: Vec<Entity>,
     pub components: Components,
 }
 
