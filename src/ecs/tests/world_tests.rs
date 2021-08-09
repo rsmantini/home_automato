@@ -66,20 +66,20 @@ fn remove_entity() {
 
     let schedule = Schedule::default();
     world.add_component::<Schedule>(e0, schedule);
-    let activation_time = ActivationTime::default();
-    world.add_component::<ActivationTime>(e0, activation_time);
+    let activation_time = ActivationState::ToBeScheduled;
+    world.add_component::<ActivationState>(e0, activation_time);
 
     {
         let schedule = world.get_component::<Schedule>(e0);
         assert!(!schedule.is_none());
-        let activation_time = world.get_component::<ActivationTime>(e0);
+        let activation_time = world.get_component::<ActivationState>(e0);
         assert!(!activation_time.is_none());
     }
 
     world.remove_entity(e0);
     let schedule = world.get_component::<Schedule>(e0);
     assert!(schedule.is_none());
-    let activation_time = world.get_component::<ActivationTime>(e0);
+    let activation_time = world.get_component::<ActivationState>(e0);
     assert!(activation_time.is_none());
 }
 
@@ -106,13 +106,13 @@ fn multiple_entities() {
         assert_eq!(s1.unwrap().min, 30);
     }
 
-    let activation_time = ActivationTime::default();
-    world.add_component::<ActivationTime>(e1, activation_time);
-    assert!(world.get_component::<ActivationTime>(e0).is_none());
-    assert!(!world.get_component::<ActivationTime>(e1).is_none());
+    let activation_time = ActivationState::ToBeScheduled;
+    world.add_component::<ActivationState>(e1, activation_time);
+    assert!(world.get_component::<ActivationState>(e0).is_none());
+    assert!(!world.get_component::<ActivationState>(e1).is_none());
 
     world.remove_entity(e1);
     assert!(!world.get_component::<Schedule>(e0).is_none());
     assert!(world.get_component::<Schedule>(e1).is_none());
-    assert!(world.get_component::<ActivationTime>(e1).is_none());
+    assert!(world.get_component::<ActivationState>(e1).is_none());
 }

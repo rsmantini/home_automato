@@ -13,55 +13,46 @@ fn index(tx: &State<mpsc::SyncSender<i32>>, number: i32) -> String {
 
 fn event_loop(_rx: mpsc::Receiver<i32>) {
     let mut world = ecs::world::World::new();
-    let s = systems::Scheduler::default();
     let e0 = world.new_entity();
     world.add_component(
         e0,
         Schedule {
-            hour: 1,
-            min: 0,
+            hour: 22,
+            min: 12,
             sec: 0,
-            repeat: false,
+            week_days: [true; 7],
         },
     );
-    world.add_component(
-        e0,
-        ActivationTime {
-            seconds_to_acivate: 10,
-        },
-    );
+    world.add_component(e0, ActivationState::ToBeScheduled);
 
     let e1 = world.new_entity();
     world.add_component(
         e1,
         Schedule {
-            hour: 2,
-            min: 0,
+            hour: 22,
+            min: 45,
             sec: 0,
-            repeat: false,
+            week_days: [false; 7],
         },
     );
+    world.add_component(e1, ActivationState::ToBeScheduled);
 
     let e2 = world.new_entity();
     world.add_component(
         e2,
         Schedule {
-            hour: 3,
-            min: 0,
+            hour: 21,
+            min: 30,
             sec: 0,
-            repeat: false,
+            week_days: [false; 7],
         },
     );
-    world.add_component(
-        e2,
-        ActivationTime {
-            seconds_to_acivate: 30,
-        },
-    );
+    world.add_component(e2, ActivationState::ToBeScheduled);
 
     loop {
+        std::thread::sleep(std::time::Duration::from_secs(1));
         //println!("recieved {}", rx.recv().unwrap());
-        s.process(&mut world);
+        systems::scheduler::process(&mut world);
     }
 }
 
