@@ -62,6 +62,13 @@ impl World {
         }
     }
 
+    pub fn is_alive(&self, entity: Entity) -> bool {
+        match self.get_index(entity) {
+            Some(_) => true,
+            None => false,
+        }
+    }
+
     fn get_index(&self, entity: Entity) -> Option<usize> {
         self.entities.iter().position(|x| x.id == entity.id)
     }
