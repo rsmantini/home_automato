@@ -20,7 +20,7 @@ fn event_loop(_rx: mpsc::Receiver<i32>) {
             hour: 22,
             min: 12,
             sec: 0,
-            week_days: [true; 7],
+            weekdays: [true; 7],
         },
     );
     world.add_component(e0, ActivationState::ToBeScheduled);
@@ -32,7 +32,7 @@ fn event_loop(_rx: mpsc::Receiver<i32>) {
             hour: 22,
             min: 45,
             sec: 0,
-            week_days: [false; 7],
+            weekdays: [false; 7],
         },
     );
     world.add_component(e1, ActivationState::ToBeScheduled);
@@ -44,7 +44,7 @@ fn event_loop(_rx: mpsc::Receiver<i32>) {
             hour: 21,
             min: 30,
             sec: 0,
-            week_days: [false; 7],
+            weekdays: [false; 7],
         },
     );
     world.add_component(e2, ActivationState::ToBeScheduled);
