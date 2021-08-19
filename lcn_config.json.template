@@ -1,0 +1,6 @@
+{
+    "address":"127.0.0.1",
+    "home_path":"/home",
+    "command_path":"/command",
+    "cookie":"cookie"
+}
