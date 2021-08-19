@@ -108,6 +108,7 @@ fn check_command_response(
 }
 
 #[derive(Serialize, Debug)]
+#[allow(non_snake_case)]
 struct LcnCmdRequest {
     mdl: i32,
     id: String,
