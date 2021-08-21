@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+
+  function print(type, message) {
+    console.log(message);
+    d = document.createElement("div");
+    $(d).addClass(type).html(">> " + message).appendTo($("#console"));
+  }
+
+  function error(message) {
+    print("err", message);
+  }
+
+  function info(message) {
+    print("info", message);
+  }
+
+  function parse_weekday(day) {
+    switch (day) {
+      case "mon": return 0;
+      case "tue": return 1;
+      case "wed": return 2;
+      case "thu": return 3;
+      case "fri": return 4;
+      case "sat": return 5;
+      case "sun": return 6;
+      default: return -1;
+    }
+  }
+
+  function parse_task_data() {
+    let task = {
+      schedule: {
+        hour: 0,
+        min: 0,
+        sec: 0,
+        weekdays: [false, false, false, false, false, false, false]
+      },
+      cmd: {
+        id: 0,
+      }
+    };
+    let form = $('#new_task').serializeArray();
+    for (const item of form) {
+      switch (item["name"]) {
+        case "command": {
+          if (item.value === "") {
+            error("invalid command id");
+            return null;
+          }
+          task.cmd.id = Number(item.value);
+          break;
+        }
+        case "time": {
+          let hour_min = item.value.split(':');
+          if (hour_min.length < 2) {
+            error("invalid command time");
+            return null
+          }
+          task.schedule.hour = Number(hour_min[0]);
+          task.schedule.min = Number(hour_min[1]);
+          break;
+        }
+        default: {
+          let weekday = parse_weekday(item.name);
+          if (weekday != -1) {
+            task.schedule.weekdays[weekday] = true;
+          }
+        }
+      }
+    }
+    return task
+  }
+
+  $(document).ready(function () {
+    $("#add").click(function () {
+      task = parse_task_data();
+      if (task === null) {
+        console.log("null");
+        return;
+      }
+      $.ajax({
+        type: "POST",
+        url: "/api/lcn_task",
+        data: JSON.stringify(task),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (data) {
+          info("task added");
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+          error(errorThrown);
+        }
+      });
+    });
+  });
+</script>
+
+<head>
+  <style type="text/css">
+    body {
+      background: #3c3d3d;
+      font-family: Arial, Helvetica, sans-serif;
+      color: rgb(231, 233, 132);
+      height: 100%;
+      width: 100%;
+    }
+
+    .left-side {
+      max-width: 45%;
+      position: relative;
+      top: 30%;
+      left: 5%;
+    }
+
+    .title {
+      font-size: 5em;
+    }
+
+    .sub-title {
+      font-size: 1.3em;
+    }
+
+    .msgs {
+      font-family: monospace;
+      padding: 5px;
+      margin: 5px;
+      white-space: nowrap;
+      background: rgb(0, 0, 0);
+      border: 1px solid #aaa;
+      overflow: auto;
+      color: rgb(255, 255, 255);
+      max-height: 300px;
+    }
+
+    .info {
+      color: #d5f5e6;
+    }
+
+    .err {
+      color: #ffe7f4;
+    }
+  </style>
+  </style>
+</head>
+
+<title>home</title>
+
+<body>
+  <h1 class="title">Lcn Home Automation</h1>
+  <div class="left-side">
+    <form id="new_task">
+      <label for="command">Command:</label>
+      <select name = "command">
+      <option value = "1623" selected>Schlafzimmer Lampe</option>
+      <option value = "1632">Schlafzimmer Rolladen runter</option>
+      <option value = "1633">Schlafzimmer Rolladen hoch</option>
+      </select><br>
+      <label for="time">Time:</label>
+      <input type="time" id="time" name="time"><br>
+
+      <label for="repeat">Repeat:</label><br>
+
+      <input type="checkbox" id="mon" name="mon" value="0">
+      <label for="mon">Mon</label>
+
+      <input type="checkbox" id="tue" name="tue" value="1">
+      <label for="tue">Tue</label>
+
+      <input type="checkbox" id="wed" name="wed" value="2">
+      <label for="wed">Wed</label>
+
+      <input type="checkbox" id="thu" name="thu" value="3">
+      <label for="thu">Thu</label>
+
+      <input type="checkbox" id="fri" name="fri" value="4">
+      <label for="fri">Fri</label>
+
+      <input type="checkbox" id="sat" name="sat" value="5">
+      <label for="sat">Sat</label>
+
+      <input type="checkbox" id="sun" name="sun" value="6">
+      <label for="sun">Sun</label><br>
+
+    </form>
+    <input type="button" id="add" value="add task">
+    <div class="msgs" id="console">Messages</div>
+  </div>
+</body>
+
+</html>

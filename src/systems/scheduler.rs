@@ -41,7 +41,7 @@ fn process_internal(world: &mut World, now: &chrono::DateTime<chrono::Local>) {
             );
             continue;
         }
-        let days = days_to_next_run(now.weekday().num_days_from_sunday(), &schedule.weekdays);
+        let days = days_to_next_run(now.weekday().num_days_from_monday(), &schedule.weekdays);
         if days.is_none() {
             to_be_removed.push(*entity);
             continue;
@@ -173,7 +173,7 @@ mod tests {
         let mut now = chrono::Local::now();
         let mut schedule = to_schedule(now.clone());
 
-        let today = now.weekday().num_days_from_sunday() as usize;
+        let today = now.weekday().num_days_from_monday() as usize;
         schedule.weekdays[(today + 2) % 7] = true;
         schedule.weekdays[(today + 6) % 7] = true;
 

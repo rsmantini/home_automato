@@ -61,7 +61,7 @@ fn execute_commands(
 
         let r = LcnCmdRequest {
             mdl: mdl,
-            id: command.button_id.to_string(),
+            id: command.id.to_string(),
             updatedIds: Vec::new(),
         };
 

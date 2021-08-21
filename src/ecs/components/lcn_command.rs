@@ -1,3 +1,6 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Serialize)]
 pub struct LcnCommand {
-    pub button_id: i32,
+    pub id: i32,
 }
