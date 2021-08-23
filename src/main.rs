@@ -25,7 +25,7 @@ fn lcn_task_producer(tx: &State<mpsc::SyncSender<LcnTask>>, task: Json<LcnTask>)
 
 #[get("/")]
 fn index() -> rocket_dyn_templates::Template {
-  rocket_dyn_templates::Template::render("home", "")
+    rocket_dyn_templates::Template::render("home", "")
 }
 
 fn new_lcn_task(world: &mut World, task: LcnTask) -> Entity {
