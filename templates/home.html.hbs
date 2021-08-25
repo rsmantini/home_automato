@@ -7,42 +7,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/5.1.0/solar/bootstrap.min.css" integrity="sha512-0ym7ZYPaG5mj7eb0L4i998y6wwzxRMmlGA7uZ93w7tz8r0pZ22ahvGMrzXi1hOFcF8utSoxgFqg85jp3umyv3A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/5.1.0/solar/bootstrap.min.css"
+        integrity="sha512-0ym7ZYPaG5mj7eb0L4i998y6wwzxRMmlGA7uZ93w7tz8r0pZ22ahvGMrzXi1hOFcF8utSoxgFqg85jp3umyv3A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-  <style type="text/css">
-    #time {
-        font-size: 2rem;
-    }
+    <style type="text/css">
+        #time {
+            font-size: 2rem;
+        }
 
-    .btn-block {
-        width: 100%;
-    }
+        .btn-block {
+            width: 100%;
+        }
 
-    label.btn.btn-outline-primary {
-        color: $primary;
-        background-color: transparent;
-        outline: none !important;
-        box-shadow: none !important;
-    }
+        label.btn.btn-outline-primary {
+            color: $primary;
+            background-color: transparent;
+            outline: none !important;
+            box-shadow: none !important;
+        }
 
-    label.btn.btn-outline-secondary.active {
-        background-color: $primary;
-    }
+        label.btn.btn-outline-secondary.active {
+            background-color: $primary;
+        }
 
-    .msgs {
-      font-family: monospace;
-      padding: 5px;
-      margin: 5px;
-      white-space: nowrap;
-      background: rgb(0, 0, 0);
-      border: 1px solid #aaa;
-      overflow: auto;
-      color: rgb(255, 255, 255);
-      max-height: 300px;
-    }
-  </style>
+        .msgs {
+            font-family: monospace;
+            padding: 5px;
+            margin: 5px;
+            white-space: nowrap;
+            background: rgb(0, 0, 0);
+            border: 1px solid #aaa;
+            overflow: auto;
+            color: rgb(255, 255, 255);
+            max-height: 300px;
+        }
+    </style>
 
-    <title>Hello, world!</title>
+    <title>HomeAutomato</title>
 </head>
 
 <body>
@@ -71,57 +73,57 @@
 
         function parse_weekday(day) {
             switch (day) {
-            case "mon": return 0;
-            case "tue": return 1;
-            case "wed": return 2;
-            case "thu": return 3;
-            case "fri": return 4;
-            case "sat": return 5;
-            case "sun": return 6;
-            default: return -1;
+                case "mon": return 0;
+                case "tue": return 1;
+                case "wed": return 2;
+                case "thu": return 3;
+                case "fri": return 4;
+                case "sat": return 5;
+                case "sun": return 6;
+                default: return -1;
             }
         }
 
         function parse_task_data() {
             let task = {
-            schedule: {
-                hour: 0,
-                min: 0,
-                sec: 0,
-                weekdays: [false, false, false, false, false, false, false]
-            },
-            cmd: {
-                id: 0,
-            }
+                schedule: {
+                    hour: 0,
+                    min: 0,
+                    sec: 0,
+                    weekdays: [false, false, false, false, false, false, false]
+                },
+                cmd: {
+                    id: 0,
+                }
             };
             let form = $('#new_task').serializeArray();
             for (const item of form) {
-            switch (item["name"]) {
-                case "command": {
-                if (item.value === "") {
-                    error("invalid command id");
-                    return null;
+                switch (item["name"]) {
+                    case "command": {
+                        if (item.value === "") {
+                            error("invalid command id");
+                            return null;
+                        }
+                        task.cmd.id = Number(item.value);
+                        break;
+                    }
+                    case "time": {
+                        let hour_min = item.value.split(':');
+                        if (hour_min.length < 2) {
+                            error("invalid command time");
+                            return null
+                        }
+                        task.schedule.hour = Number(hour_min[0]);
+                        task.schedule.min = Number(hour_min[1]);
+                        break;
+                    }
+                    default: {
+                        let weekday = parse_weekday(item.name);
+                        if (weekday != -1) {
+                            task.schedule.weekdays[weekday] = true;
+                        }
+                    }
                 }
-                task.cmd.id = Number(item.value);
-                break;
-                }
-                case "time": {
-                let hour_min = item.value.split(':');
-                if (hour_min.length < 2) {
-                    error("invalid command time");
-                    return null
-                }
-                task.schedule.hour = Number(hour_min[0]);
-                task.schedule.min = Number(hour_min[1]);
-                break;
-                }
-                default: {
-                let weekday = parse_weekday(item.name);
-                if (weekday != -1) {
-                    task.schedule.weekdays[weekday] = true;
-                }
-                }
-            }
             }
             return task
         }
@@ -135,15 +137,28 @@
                 }
                 $.ajax({
                     type: "POST",
-                    url: "/api/lcn_task",
+                    url: "/api/new_lcn_task",
                     data: JSON.stringify(task),
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
                     success: function (data) {
-                    info("task added");
+                        info(data);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                    error(errorThrown);
+                        error(errorThrown);
+                    }
+                });
+            });
+
+            $("#get_status").click(function () {
+                $.ajax({
+                    url: "/api/get_status",
+                    dataType: "json",
+                    success: function (data) {
+                        data.forEach(element => info(JSON.stringify(element)));
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        error(errorThrown);
                     }
                 });
             });
@@ -151,9 +166,10 @@
     </script>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Automator</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
+            <a class="navbar-brand" href="#">HomeAutomato</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor02"
+                aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
             </button>
         </div>
     </nav>
@@ -165,11 +181,11 @@
                     <div class="card-header">Scheduled Command</div>
                     <div class="card-body">
                         <form id="new_task">
-                            <select class="form-select form-select-lg mb-3", name = "command">
-                            <option selected>select command</option>
-                            <option value = "1623"> Schlafzimmer Lampe</option>
-                            <option value = "1632">Schlafzimmer Rolladen hoch</option>
-                            <option value = "1633">Schlafzimmer Rolladen runter</option>
+                            <select class="form-select form-select-lg mb-3" , name="command">
+                                <option selected>select command</option>
+                                <option value="1623">Schlafzimmer Lampe</option>
+                                <option value="1632">Schlafzimmer Rolladen hoch</option>
+                                <option value="1633">Schlafzimmer Rolladen runter</option>
                             </select>
 
                             <label for="time">Time</label><br>
@@ -177,8 +193,9 @@
 
 
 
-                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuClickable" data-bs-toggle="dropdown" data-bs-auto-close="false" aria-expanded="false">
-                                Repeat 
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuClickable"
+                                data-bs-toggle="dropdown" data-bs-auto-close="false" aria-expanded="false">
+                                Repeat
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="dropdownMenuClickable">
                                 <li>
@@ -216,8 +233,9 @@
                                     <label class="btn btn-outline-primary btn-lg btn-block" for="sun">Sun</label>
                                 </li>
                             </ul>
-                        </form> 
+                        </form>
                         <button type="button" class="btn btn-primary btn-lg" id="add">Add</button>
+                        <button type="button" class="btn btn-primary btn-lg" id="get_status">Get Status</button>
                     </div>
                 </div>
                 <div class="msgs" id="console">Console</div>

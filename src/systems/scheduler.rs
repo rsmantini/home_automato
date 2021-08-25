@@ -99,6 +99,9 @@ mod tests {
     fn test_one_time_action() {
         let mut world = World::new();
         let mut now = chrono::Local::now();
+        if now.hour() >= 23 {
+            now = now - Duration::hours(1);
+        }
         let action = new_action(&mut world, to_schedule(now + Duration::hours(1)));
 
         process_internal(&mut world, &now);
@@ -123,7 +126,10 @@ mod tests {
     #[test]
     fn test_one_time_action_in_the_past() {
         let mut world = World::new();
-        let now = chrono::Local::now();
+        let mut now = chrono::Local::now();
+        if now.hour() < 1 {
+            now = now + Duration::hours(1);
+        }
 
         let action = new_action(&mut world, to_schedule(now - Duration::hours(1)));
         assert!(world.is_alive(action));
@@ -243,5 +249,26 @@ mod tests {
             }
             repeat += 1;
         }
+    }
+
+    #[test]
+    fn add_action_for_next_day_after_current_time() {
+        let mut world = World::new();
+        let now = chrono::Local::now();
+
+        let mut schedule = to_schedule(now + Duration::seconds(1));
+
+        let today = now.weekday().num_days_from_monday() as usize;
+        let tomorrow = (today + 1) % 7;
+        schedule.weekdays[tomorrow] = true;
+
+        let action = new_action(&mut world, schedule);
+        process_internal(&mut world, &now);
+        let state = world.get_component::<ActivationState>(action).unwrap();
+        let expected_sched_time = now + Duration::seconds(1) + Duration::days(1);
+        assert_eq!(
+            *state,
+            ActivationState::Scheduled(expected_sched_time.timestamp())
+        );
     }
 }
