@@ -32,7 +32,8 @@ fn process_internal(world: &mut World, now: &chrono::DateTime<chrono::Local>) {
             schedule.min as u32,
             schedule.sec as u32,
         );
-        if activation_date >= *now {
+        let today = now.weekday().num_days_from_monday() as usize;
+        if activation_date >= *now && (!has_repeat(&schedule.weekdays) || schedule.weekdays[today]) {
             *state = ActivationState::Scheduled(activation_date.timestamp());
             println!(
                 "Entity {} scheduled0 {}",
@@ -70,6 +71,15 @@ fn days_to_next_run(mut weekday: u32, weekdays: &[bool]) -> Option<i64> {
         days += 1;
     }
     None
+}
+
+fn has_repeat(weekdays: &[bool]) -> bool {
+    for day in weekdays {
+        if *day {
+            return true;
+        }
+    }
+    false
 }
 
 #[cfg(test)]
