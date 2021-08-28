@@ -1,5 +1,3 @@
-use serde_json;
-
 #[derive(Debug)]
 pub struct LcnConfig {
     pub home_url: String,
@@ -38,9 +36,9 @@ pub fn from_file(path: &str) -> Result<LcnConfig, Error> {
 fn get_string(json: &serde_json::Value, key: &str) -> Result<String, Error> {
     Ok(json
         .get(key)
-        .ok_or(Error::Parse(key.to_string()))?
+        .ok_or_else(|| Error::Parse(key.to_string()))?
         .as_str()
-        .ok_or(Error::Parse(key.to_string()))?
+        .ok_or_else(|| Error::Parse(key.to_string()))?
         .to_string())
 }
 

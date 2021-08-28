@@ -11,6 +11,7 @@ impl Entity {
     }
 }
 
+#[derive(Default)]
 pub struct World {
     entity_count: i32,
     pub entities: Vec<Entity>,
@@ -63,10 +64,7 @@ impl World {
     }
 
     pub fn is_alive(&self, entity: Entity) -> bool {
-        match self.get_index(entity) {
-            Some(_) => true,
-            None => false,
-        }
+        self.get_index(entity).is_some()
     }
 
     fn get_index(&self, entity: Entity) -> Option<usize> {
