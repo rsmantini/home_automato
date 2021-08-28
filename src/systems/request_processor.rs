@@ -17,16 +17,23 @@ pub fn process(world: &mut World, rx: &mpsc::Receiver<Request>) -> bool {
     match request {
         Request::NewTask(data) => {
             let entity = create_lcn_task(world, data.1);
-            let result = data.0.send(Response::NewTask(entity));
-            result.expect("process_request(NewTask): failed to send response");
+            send_response(data.0, Response::NewTask(entity), "NewTask");
+        }
+        Request::RemoveTask(data) => {
+            world.remove_entity(data.1);
+            send_response(data.0, Response::RemoveTask, "RemoveTask");
         }
         Request::GetStatus(tx) => {
             let status = super::status_reporter::get_status(world);
-            let result = tx.send(Response::GetStatus(status));
-            result.expect("process_request(GetStatus): failed to send response");
+            send_response(tx, Response::GetStatus(status), "GetStatus");
         }
     }
     true
+}
+
+fn send_response(tx: mpsc::SyncSender<Response>, response: Response, tag: &str) {
+    let result = tx.send(response);
+    result.unwrap_or_else(|_| panic!("process_request({}): failed to send response", tag));
 }
 
 fn create_lcn_task(world: &mut World, task: TaskRequest) -> Entity {

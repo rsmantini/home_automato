@@ -5,11 +5,13 @@ use std::sync::mpsc;
 
 pub enum Request {
     NewTask((mpsc::SyncSender<Response>, TaskRequest)),
+    RemoveTask((mpsc::SyncSender<Response>, Entity)),
     GetStatus(mpsc::SyncSender<Response>),
 }
 
 pub enum Response {
     NewTask(Entity),
+    RemoveTask,
     GetStatus(Vec<TaskStatus>),
 }
 

@@ -26,6 +26,21 @@ fn lcn_task_producer(
     }
 }
 
+#[get("/remove_task/<id>")]
+fn remove_task(global_tx: &State<mpsc::SyncSender<Request>>, id: i32) -> String {
+    let (tx, rx) = mpsc::sync_channel(1);
+    let request = Request::RemoveTask((tx, ecs::world::Entity::new(id)));
+    let response = make_request(global_tx, rx, request);
+    match response {
+        Ok(Response::RemoveTask) => {
+            let res = format!("success: task with id {} removed", id);
+            serde_json::to_string(&res).unwrap()
+        }
+        Ok(_) => serde_json::to_string("failure: unexpected response").unwrap(),
+        Err(e) => serde_json::to_string(&e.to_string()).unwrap(),
+    }
+}
+
 #[get("/get_status")]
 fn get_status(global_tx: &State<mpsc::SyncSender<Request>>) -> String {
     let (tx, rx) = mpsc::sync_channel(1);
@@ -49,6 +64,6 @@ fn rocket() -> _ {
     rocket::build()
         .manage(tx)
         .mount("/", routes![index])
-        .mount("/api", routes![lcn_task_producer, get_status])
+        .mount("/api", routes![lcn_task_producer, remove_task, get_status])
         .attach(rocket_dyn_templates::Template::fairing())
 }

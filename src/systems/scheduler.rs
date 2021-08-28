@@ -33,7 +33,8 @@ fn process_internal(world: &mut World, now: &chrono::DateTime<chrono::Local>) {
             schedule.sec as u32,
         );
         let today = now.weekday().num_days_from_monday() as usize;
-        if activation_date >= *now && (!has_repeat(&schedule.weekdays) || schedule.weekdays[today]) {
+        if activation_date >= *now && (!has_repeat(&schedule.weekdays) || schedule.weekdays[today])
+        {
             *state = ActivationState::Scheduled(activation_date.timestamp());
             println!(
                 "Entity {} scheduled0 {}",

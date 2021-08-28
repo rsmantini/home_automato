@@ -155,6 +155,7 @@
                     url: "/api/get_status",
                     dataType: "json",
                     success: function (data) {
+                        info("Status:")
                         data.forEach(element => info(JSON.stringify(element)));
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
@@ -162,6 +163,30 @@
                     }
                 });
             });
+
+            $("#remove").click(function () {
+                let id = $("#remove_task_id").val();
+                $.ajax({
+                    url: `/api/remove_task/${id}`,
+                    dataType: "json",
+                    success: function (data) {
+                        info(data)
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        error(errorThrown);
+                    }
+                });
+            });
+        });
+
+        $(document).on('click', function (e) {
+            if (!$('#weekdays').is(e.target)
+                && $('#weekdays').has(e.target).length === 0
+                && $('.open').has(e.target).length === 0
+                && !$('#repeat').is(e.target)
+            ) {
+                $('#repeat').dropdown('hide');
+            }
         });
     </script>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -183,21 +208,21 @@
                         <form id="new_task">
                             <select class="form-select form-select-lg mb-3" , name="command">
                                 <option selected>select command</option>
-                                <option value="1623">Schlafzimmer Lampe</option>
-                                <option value="1632">Schlafzimmer Rolladen hoch</option>
-                                <option value="1633">Schlafzimmer Rolladen runter</option>
+                                <option value="1623">SZ Lampe</option>
+                                <option value="1632">SZ Rolladen hoch</option>
+                                <option value="1633">SZ Rolladen runter</option>
                             </select>
 
-                            <label for="time">Time</label><br>
+                            <label for="time">Time:</label><br>
                             <input class="input-large" type="time" id="time" name="time">
 
 
 
-                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuClickable"
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="repeat"
                                 data-bs-toggle="dropdown" data-bs-auto-close="false" aria-expanded="false">
                                 Repeat
                             </button>
-                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuClickable">
+                            <ul class="dropdown-menu" id="weekdays" aria-labelledby="dropdownMenuClickable">
                                 <li>
                                     <input type="checkbox" class="btn-check" id="mon" autocomplete="off" name="mon">
                                     <label class="btn btn-outline-primary btn-lg btn-block" for="mon">Mon</label>
@@ -234,8 +259,14 @@
                                 </li>
                             </ul>
                         </form>
+                        <br>
                         <button type="button" class="btn btn-primary btn-lg" id="add">Add</button>
-                        <button type="button" class="btn btn-primary btn-lg" id="get_status">Get Status</button>
+                        <button type="button" class="btn btn-info btn-lg" id="get_status">Get Status</button><br>
+                        <br>
+
+                        <label for="remove_task_id" class="form-label">Task id:</label>
+                        <input type="number" class="form-control" id="remove_task_id">
+                        <button type="button" class="btn btn-warning btn-lg" id="remove">Remove</button>
                     </div>
                 </div>
                 <div class="msgs" id="console">Console</div>

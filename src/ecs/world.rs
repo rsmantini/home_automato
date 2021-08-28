@@ -6,6 +6,10 @@ pub struct Entity {
 }
 
 impl Entity {
+    pub fn new(id: i32) -> Entity {
+        Entity { id }
+    }
+
     pub fn id(&self) -> i32 {
         self.id
     }
