@@ -3,6 +3,7 @@ use rocket::serde::json::Json;
 use rocket::{get, launch, post, routes, State};
 use std::sync::mpsc;
 
+pub mod components;
 mod event_loop;
 mod lcn_config;
 mod requests;
@@ -27,9 +28,9 @@ fn lcn_task_producer(
 }
 
 #[get("/remove_task/<id>")]
-fn remove_task(global_tx: &State<mpsc::SyncSender<Request>>, id: i32) -> String {
+fn remove_task(global_tx: &State<mpsc::SyncSender<Request>>, id: i64) -> String {
     let (tx, rx) = mpsc::sync_channel(1);
-    let request = Request::RemoveTask((tx, ecs::world::Entity::new(id)));
+    let request = Request::RemoveTask((tx, ecs::Entity::new(id)));
     let response = make_request(global_tx, rx, request);
     match response {
         Ok(Response::RemoveTask) => {

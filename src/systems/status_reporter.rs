@@ -1,22 +1,23 @@
-use ecs::components::*;
-use ecs::world::World;
+use super::super::components::*;
+use ecs::Ecs;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TaskStatus {
-    pub id: i32,
+    pub id: i64,
     pub activation_time: String,
     pub repeat_days: String,
     pub state: String,
     pub cmd_id: i32,
 }
 
-pub fn get_status(world: &World) -> Vec<TaskStatus> {
+pub fn get_status(ecs: &Ecs) -> Vec<TaskStatus> {
+    let components = ecs::downcast_components::<Components>(&ecs.components);
     let range = itertools::izip!(
-        &world.components.activation_states,
-        &world.components.schedules,
-        &world.components.lcn_commands,
-        &world.entities
+        &components.activation_states,
+        &components.schedules,
+        &components.lcn_commands,
+        &ecs.entities
     )
     .filter_map(|(a, s, l, e)| Some((a.as_ref()?, s.as_ref()?, l.as_ref()?, e)));
 

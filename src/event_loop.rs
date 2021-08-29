@@ -1,9 +1,11 @@
+use super::components;
 use super::lcn_config;
 use super::requests::*;
 use super::systems;
 
 pub fn run(rx: std::sync::mpsc::Receiver<Request>) {
-    let mut world = ecs::world::World::new();
+    let components = Box::new(components::Components::default());
+    let mut world = ecs::Ecs::new(components);
     let client = reqwest::blocking::Client::builder()
         .timeout(std::time::Duration::from_secs(1))
         .build()

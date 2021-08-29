@@ -1,11 +1,11 @@
+use super::super::components::{ActivationState, Components};
 use super::super::lcn_config::LcnConfig;
-use ecs::components::ActivationState;
-use ecs::world::World;
+use ecs::Ecs;
 use reqwest::header;
 use serde::Serialize;
 
-pub fn process(world: &mut World, config: &LcnConfig, client: &reqwest::blocking::Client) {
-    if !has_command_to_execute(world) {
+pub fn process(ecs: &mut Ecs, config: &LcnConfig, client: &reqwest::blocking::Client) {
+    if !has_command_to_execute(ecs) {
         return;
     }
     let mdl = get_mdl(config, client);
@@ -13,15 +13,13 @@ pub fn process(world: &mut World, config: &LcnConfig, client: &reqwest::blocking
     if mdl.is_none() {
         return;
     }
-    execute_commands(world, config, mdl.unwrap(), client);
+    execute_commands(ecs, config, mdl.unwrap(), client);
 }
 
-fn has_command_to_execute(world: &mut World) -> bool {
-    let range = itertools::izip!(
-        &world.components.activation_states,
-        &world.components.lcn_commands
-    )
-    .filter_map(|(a, c)| Some((a.as_ref()?, c.as_ref()?)));
+fn has_command_to_execute(ecs: &Ecs) -> bool {
+    let components = ecs::downcast_components::<Components>(&ecs.components);
+    let range = itertools::izip!(&components.activation_states, &components.lcn_commands)
+        .filter_map(|(a, c)| Some((a.as_ref()?, c.as_ref()?)));
     for (state, _) in range {
         if *state == ActivationState::ReadyToRun {
             return true;
@@ -43,16 +41,14 @@ fn get_mdl(config: &LcnConfig, client: &reqwest::blocking::Client) -> Option<i32
 }
 
 fn execute_commands(
-    world: &mut World,
+    ecs: &mut Ecs,
     config: &LcnConfig,
     mdl: i32,
     client: &reqwest::blocking::Client,
 ) {
-    let range = itertools::izip!(
-        &mut world.components.activation_states,
-        &world.components.lcn_commands
-    )
-    .filter_map(|(a, c)| Some((a.as_mut()?, c.as_ref()?)));
+    let components = ecs::downcast_components_mut::<Components>(&mut ecs.components);
+    let range = itertools::izip!(&mut components.activation_states, &components.lcn_commands)
+        .filter_map(|(a, c)| Some((a.as_mut()?, c.as_ref()?)));
 
     for (state, command) in range {
         if *state != ActivationState::ReadyToRun {
