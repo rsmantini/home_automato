@@ -63,28 +63,23 @@ impl Ecs {
     }
 
     pub fn remove_entity(&mut self, entity: Entity) {
-        if let Some(index) = self.get_index(entity) {
-            self.entities.remove(index);
-            self.components.remove(index);
-        }
+        let index = self
+            .get_index(entity)
+            .expect("trying to remove invalid entity");
+        self.entities.remove(index);
+        self.components.remove(index);
     }
 
     pub fn get_component<C: Component>(&mut self, entity: Entity) -> Option<&mut C> {
-        match self.get_component_option::<C>(entity) {
-            Ok(opt) => opt.as_mut(),
-            Err(_) => None,
-        }
+        self.get_component_option(entity).as_mut()
     }
 
     pub fn add_component<C: Component>(&mut self, entity: Entity, component: C) {
-        let opt = self.get_component_option::<C>(entity);
-        *opt.expect("adding component to invalid entity") = Some(component);
+        self.get_component_option::<C>(entity).insert(component);
     }
 
     pub fn remove_component<C: Component>(&mut self, entity: Entity) {
-        if let Ok(opt) = self.get_component_option::<C>(entity) {
-            *opt = None;
-        }
+        self.get_component_option::<C>(entity).take();
     }
 
     pub fn is_alive(&self, entity: Entity) -> bool {
@@ -95,12 +90,9 @@ impl Ecs {
         self.entities.iter().position(|x| x.id == entity.id)
     }
 
-    fn get_component_option<C: Component>(&mut self, entity: Entity) -> Result<&mut Option<C>, ()> {
-        let index = self.get_index(entity);
-        match index {
-            Some(i) => Ok(&mut C::get_vec(&mut self.components)[i]),
-            None => Err(()),
-        }
+    fn get_component_option<C: Component>(&mut self, entity: Entity) -> &mut Option<C> {
+        let index = self.get_index(entity).expect("operation on invalid entity");
+        &mut C::get_vec(&mut self.components)[index]
     }
 }
 
@@ -229,18 +221,16 @@ mod tests {
             assert!(!int_comp.is_none());
         }
 
+        assert!(ecs.is_alive(e0));
         ecs.remove_entity(e0);
-        let int_comp = ecs.get_component::<i32>(e0);
-        assert!(int_comp.is_none());
-        let str_comp = ecs.get_component::<String>(e0);
-        assert!(str_comp.is_none());
+        assert!(!ecs.is_alive(e0));
 
         let int_comp = ecs.get_component::<i32>(e1);
         assert!(!int_comp.is_none());
 
+        assert!(ecs.is_alive(e1));
         ecs.remove_entity(e1);
-        let int_comp = ecs.get_component::<i32>(e1);
-        assert!(int_comp.is_none());
+        assert!(!ecs.is_alive(e1));
     }
 
     #[test]
@@ -270,9 +260,55 @@ mod tests {
         assert!(ecs.get_component::<String>(e0).is_none());
         assert!(!ecs.get_component::<String>(e1).is_none());
 
+        assert!(ecs.is_alive(e1));
         ecs.remove_entity(e1);
+        assert!(!ecs.is_alive(e1));
         assert!(!ecs.get_component::<i32>(e0).is_none());
-        assert!(ecs.get_component::<i32>(e1).is_none());
-        assert!(ecs.get_component::<String>(e1).is_none());
+    }
+
+    #[test]
+    #[should_panic]
+    fn remove_missing_entity() {
+        let components = Box::new(TestComponents::default());
+        let mut ecs = Ecs::new(components);
+        let entity = ecs.new_entity();
+        ecs.remove_entity(entity);
+        ecs.remove_entity(entity);
+    }
+
+    #[test]
+    #[should_panic]
+    fn get_component_on_missing_entity() {
+        let components = Box::new(TestComponents::default());
+        let mut ecs = Ecs::new(components);
+        let entity = ecs.new_entity();
+        ecs.add_component(entity, String::from("foo"));
+        assert!(ecs.get_component::<String>(entity).is_some());
+        ecs.remove_entity(entity);
+        ecs.get_component::<String>(entity);
+    }
+
+    #[test]
+    #[should_panic]
+    fn remove_component_on_missing_entity() {
+        let components = Box::new(TestComponents::default());
+        let mut ecs = Ecs::new(components);
+        let entity = ecs.new_entity();
+        ecs.add_component(entity, String::from("foo"));
+        assert!(ecs.get_component::<String>(entity).is_some());
+        ecs.remove_entity(entity);
+        ecs.remove_component::<String>(entity);
+    }
+
+    #[test]
+    #[should_panic]
+    fn add_component_to_missing_entity() {
+        let components = Box::new(TestComponents::default());
+        let mut ecs = Ecs::new(components);
+        let entity = ecs.new_entity();
+        ecs.add_component(entity, String::from("foo"));
+        assert!(ecs.get_component::<String>(entity).is_some());
+        ecs.remove_entity(entity);
+        ecs.add_component::<i32>(entity, 42);
     }
 }

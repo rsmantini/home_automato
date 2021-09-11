@@ -3,7 +3,7 @@ use rocket::serde::json::Json;
 use rocket::{get, launch, post, routes, State};
 use std::sync::mpsc;
 
-pub mod components;
+mod components;
 mod event_loop;
 mod lcn_config;
 mod requests;
