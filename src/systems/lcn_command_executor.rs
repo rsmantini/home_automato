@@ -1,6 +1,6 @@
 use super::super::components::{ActivationState, Components};
 use super::super::lcn_config::LcnConfig;
-use ecs::Ecs;
+use lame_ecs::Ecs;
 use reqwest::header;
 use serde::Serialize;
 
@@ -17,7 +17,7 @@ pub fn process(ecs: &mut Ecs, config: &LcnConfig, client: &reqwest::blocking::Cl
 }
 
 fn has_command_to_execute(ecs: &Ecs) -> bool {
-    let components = ecs::downcast_components::<Components>(&ecs.components);
+    let components = lame_ecs::downcast_components::<Components>(&ecs.components);
     let range = itertools::izip!(&components.activation_states, &components.lcn_commands)
         .filter_map(|(a, c)| Some((a.as_ref()?, c.as_ref()?)));
     for (state, _) in range {
@@ -46,7 +46,7 @@ fn execute_commands(
     mdl: i32,
     client: &reqwest::blocking::Client,
 ) {
-    let components = ecs::downcast_components_mut::<Components>(&mut ecs.components);
+    let components = lame_ecs::downcast_components_mut::<Components>(&mut ecs.components);
     let range = itertools::izip!(&mut components.activation_states, &components.lcn_commands)
         .filter_map(|(a, c)| Some((a.as_mut()?, c.as_ref()?)));
 

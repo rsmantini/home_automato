@@ -5,7 +5,7 @@ use super::systems;
 
 pub fn run(rx: std::sync::mpsc::Receiver<Request>) {
     let components = Box::new(components::Components::default());
-    let mut world = ecs::Ecs::new(components);
+    let mut ecs = lame_ecs::Ecs::new(components);
     let client = reqwest::blocking::Client::builder()
         .timeout(std::time::Duration::from_secs(1))
         .build()
@@ -14,10 +14,10 @@ pub fn run(rx: std::sync::mpsc::Receiver<Request>) {
 
     loop {
         std::thread::sleep(std::time::Duration::from_secs(1));
-        if !systems::request_processor::process(&mut world, &rx) {
+        if !systems::request_processor::process(&mut ecs, &rx) {
             break;
         }
-        systems::scheduler::process(&mut world);
-        systems::lcn_command_executor::process(&mut world, &lcn_config, &client);
+        systems::scheduler::process(&mut ecs);
+        systems::lcn_command_executor::process(&mut ecs, &lcn_config, &client);
     }
 }

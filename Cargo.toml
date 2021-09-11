@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2018"
 
 [lib]
-name = "ecs"
-path = "src/ecs/ecs.rs"
+name = "lame_ecs"
+path = "src/lame_ecs/lame_ecs.rs"
 
 [[bin]]
 name = "home_automation"

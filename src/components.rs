@@ -13,7 +13,7 @@ pub struct Components {
     pub lcn_commands: Vec<Option<LcnCommand>>,
 }
 
-impl ecs::Components for Components {
+impl lame_ecs::Components for Components {
     fn push_none(&mut self) {
         self.schedules.push(None);
         self.activation_states.push(None);
@@ -35,20 +35,20 @@ impl ecs::Components for Components {
     }
 }
 
-impl ecs::Component for Schedule {
-    fn get_vec(components: &mut Box<dyn ecs::Components>) -> &mut Vec<Option<Self>> {
-        &mut ecs::downcast_components_mut::<Components>(components).schedules
+impl lame_ecs::Component for Schedule {
+    fn get_vec(components: &mut Box<dyn lame_ecs::Components>) -> &mut Vec<Option<Self>> {
+        &mut lame_ecs::downcast_components_mut::<Components>(components).schedules
     }
 }
 
-impl ecs::Component for ActivationState {
-    fn get_vec(components: &mut Box<dyn ecs::Components>) -> &mut Vec<Option<Self>> {
-        &mut ecs::downcast_components_mut::<Components>(components).activation_states
+impl lame_ecs::Component for ActivationState {
+    fn get_vec(components: &mut Box<dyn lame_ecs::Components>) -> &mut Vec<Option<Self>> {
+        &mut lame_ecs::downcast_components_mut::<Components>(components).activation_states
     }
 }
 
-impl ecs::Component for LcnCommand {
-    fn get_vec(components: &mut Box<dyn ecs::Components>) -> &mut Vec<Option<Self>> {
-        &mut ecs::downcast_components_mut::<Components>(components).lcn_commands
+impl lame_ecs::Component for LcnCommand {
+    fn get_vec(components: &mut Box<dyn lame_ecs::Components>) -> &mut Vec<Option<Self>> {
+        &mut lame_ecs::downcast_components_mut::<Components>(components).lcn_commands
     }
 }

@@ -1,6 +1,6 @@
 use super::super::components::{ActivationState, Components};
 use chrono::{Datelike, Local, TimeZone};
-use ecs::{Ecs, Entity};
+use lame_ecs::{Ecs, Entity};
 
 pub fn process(ecs: &mut Ecs) {
     let now = chrono::Local::now();
@@ -8,7 +8,7 @@ pub fn process(ecs: &mut Ecs) {
 }
 
 fn process_internal(ecs: &mut Ecs, now: &chrono::DateTime<chrono::Local>) {
-    let components = ecs::downcast_components_mut::<Components>(&mut ecs.components);
+    let components = lame_ecs::downcast_components_mut::<Components>(&mut ecs.components);
     let range = itertools::izip!(
         &mut components.activation_states,
         &components.schedules,
@@ -89,7 +89,7 @@ mod tests {
     use super::super::super::components::*;
     use super::*;
     use chrono::{Duration, Timelike};
-    use ecs::{Ecs, Entity};
+    use lame_ecs::{Ecs, Entity};
 
     fn to_schedule(date_time: chrono::DateTime<chrono::Local>) -> Schedule {
         Schedule {

@@ -1,5 +1,5 @@
 use super::super::components::*;
-use ecs::Ecs;
+use lame_ecs::Ecs;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -12,7 +12,7 @@ pub struct TaskStatus {
 }
 
 pub fn get_status(ecs: &Ecs) -> Vec<TaskStatus> {
-    let components = ecs::downcast_components::<Components>(&ecs.components);
+    let components = lame_ecs::downcast_components::<Components>(&ecs.components);
     let range = itertools::izip!(
         &components.activation_states,
         &components.schedules,

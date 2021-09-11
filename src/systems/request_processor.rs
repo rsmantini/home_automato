@@ -1,6 +1,6 @@
 use super::super::components::ActivationState;
 use super::super::requests::*;
-use ecs::{Ecs, Entity};
+use lame_ecs::{Ecs, Entity};
 use std::sync::mpsc;
 
 pub fn process(ecs: &mut Ecs, rx: &mpsc::Receiver<Request>) -> bool {

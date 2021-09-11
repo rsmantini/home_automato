@@ -1,6 +1,6 @@
 use super::components::{LcnCommand, Schedule};
 use super::systems::status_reporter::TaskStatus;
-use ecs::Entity;
+use lame_ecs::Entity;
 use serde::{Deserialize, Serialize};
 use std::sync::mpsc;
 
