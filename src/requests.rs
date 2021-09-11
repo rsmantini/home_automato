@@ -12,7 +12,7 @@ pub enum Request {
 
 pub enum Response {
     NewTask(Entity),
-    RemoveTask,
+    RemoveTask(bool),
     GetStatus(Vec<TaskStatus>),
 }
 

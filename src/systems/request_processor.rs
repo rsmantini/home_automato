@@ -20,8 +20,12 @@ pub fn process(ecs: &mut Ecs, rx: &mpsc::Receiver<Request>) -> bool {
             send_response(data.0, Response::NewTask(entity), "NewTask");
         }
         Request::RemoveTask(data) => {
-            ecs.remove_entity(data.1);
-            send_response(data.0, Response::RemoveTask, "RemoveTask");
+            let mut removed = false;
+            if ecs.is_alive(data.1) {
+                ecs.remove_entity(data.1);
+                removed = true;
+            }
+            send_response(data.0, Response::RemoveTask(removed), "RemoveTask");
         }
         Request::GetStatus(tx) => {
             let status = super::status_reporter::get_status(ecs);

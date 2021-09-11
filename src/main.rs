@@ -33,8 +33,12 @@ fn remove_task(global_tx: &State<mpsc::SyncSender<Request>>, id: i64) -> String 
     let request = Request::RemoveTask((tx, ecs::Entity::new(id)));
     let response = make_request(global_tx, rx, request);
     match response {
-        Ok(Response::RemoveTask) => {
+        Ok(Response::RemoveTask(true)) => {
             let res = format!("success: task with id {} removed", id);
+            serde_json::to_string(&res).unwrap()
+        }
+        Ok(Response::RemoveTask(false)) => {
+            let res = format!("failure: no task with id {} exists", id);
             serde_json::to_string(&res).unwrap()
         }
         Ok(_) => serde_json::to_string("failure: unexpected response").unwrap(),
