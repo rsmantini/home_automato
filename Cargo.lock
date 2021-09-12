@@ -560,6 +560,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "itertools",
+ "lame_ecs",
  "reqwest",
  "rocket",
  "rocket_dyn_templates",
@@ -743,6 +744,11 @@ dependencies = [
  "winapi 0.2.8",
  "winapi-build",
 ]
+
+[[package]]
+name = "lame_ecs"
+version = "0.1.0"
+source = "git+https://github.com/rsmantini/lame_ecs.git#fe90fe1646e5cb6aa4031bf4c06bb144756f1b84"
 
 [[package]]
 name = "lazy_static"

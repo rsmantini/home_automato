@@ -3,10 +3,6 @@ name = "home_automation"
 version = "0.1.0"
 edition = "2018"
 
-[lib]
-name = "lame_ecs"
-path = "src/lame_ecs/lame_ecs.rs"
-
 [[bin]]
 name = "home_automation"
 path = "src/main.rs"
@@ -20,3 +16,4 @@ itertools = "0.10.1"
 serde = "1.0.117"
 serde_json = "1.0.59"
 reqwest = { version = "0.11.4", features = ["blocking", "json"] }
+lame_ecs = { git = "https://github.com/rsmantini/lame_ecs.git" }
