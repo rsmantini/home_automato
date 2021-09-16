@@ -12,7 +12,7 @@ pub struct TaskStatus {
 }
 
 pub fn get_status(ecs: &Ecs) -> Vec<TaskStatus> {
-    let components = lame_ecs::downcast_components::<Components>(&ecs.components);
+    let components = lame_ecs::downcast_components::<Components>(ecs.components.as_ref());
     let range = itertools::izip!(
         &components.activation_states,
         &components.schedules,

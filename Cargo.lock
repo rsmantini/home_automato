@@ -748,7 +748,7 @@ dependencies = [
 [[package]]
 name = "lame_ecs"
 version = "0.1.0"
-source = "git+https://github.com/rsmantini/lame_ecs.git#fe90fe1646e5cb6aa4031bf4c06bb144756f1b84"
+source = "git+https://github.com/rsmantini/lame_ecs.git#e9c0effb47ca6af0e09d6ce263119c66929ceb8b"
 
 [[package]]
 name = "lazy_static"

@@ -36,19 +36,19 @@ impl lame_ecs::Components for Components {
 }
 
 impl lame_ecs::Component for Schedule {
-    fn get_vec(components: &mut Box<dyn lame_ecs::Components>) -> &mut Vec<Option<Self>> {
+    fn get_vec(components: &mut dyn lame_ecs::Components) -> &mut Vec<Option<Self>> {
         &mut lame_ecs::downcast_components_mut::<Components>(components).schedules
     }
 }
 
 impl lame_ecs::Component for ActivationState {
-    fn get_vec(components: &mut Box<dyn lame_ecs::Components>) -> &mut Vec<Option<Self>> {
+    fn get_vec(components: &mut dyn lame_ecs::Components) -> &mut Vec<Option<Self>> {
         &mut lame_ecs::downcast_components_mut::<Components>(components).activation_states
     }
 }
 
 impl lame_ecs::Component for LcnCommand {
-    fn get_vec(components: &mut Box<dyn lame_ecs::Components>) -> &mut Vec<Option<Self>> {
+    fn get_vec(components: &mut dyn lame_ecs::Components) -> &mut Vec<Option<Self>> {
         &mut lame_ecs::downcast_components_mut::<Components>(components).lcn_commands
     }
 }

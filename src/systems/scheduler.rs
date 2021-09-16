@@ -8,7 +8,7 @@ pub fn process(ecs: &mut Ecs) {
 }
 
 fn process_internal(ecs: &mut Ecs, now: &chrono::DateTime<chrono::Local>) {
-    let components = lame_ecs::downcast_components_mut::<Components>(&mut ecs.components);
+    let components = lame_ecs::downcast_components_mut::<Components>(ecs.components.as_mut());
     let range = itertools::izip!(
         &mut components.activation_states,
         &components.schedules,
