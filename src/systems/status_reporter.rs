@@ -1,5 +1,5 @@
 use super::super::components::*;
-use lame_ecs::Ecs;
+use lame_ecs::{component_iter, World};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -11,15 +11,8 @@ pub struct TaskStatus {
     pub cmd_id: i32,
 }
 
-pub fn get_status(ecs: &Ecs) -> Vec<TaskStatus> {
-    let components = lame_ecs::downcast_components::<Components>(ecs.components.as_ref());
-    let range = itertools::izip!(
-        &components.activation_states,
-        &components.schedules,
-        &components.lcn_commands,
-        &ecs.entities
-    )
-    .filter_map(|(a, s, l, e)| Some((a.as_ref()?, s.as_ref()?, l.as_ref()?, e)));
+pub fn get_status(world: &World) -> Vec<TaskStatus> {
+    let range = component_iter!(world, ActivationState, Schedule, LcnCommand);
 
     let mut report = Vec::<TaskStatus>::new();
     for (state, schedule, cmd, entity) in range {

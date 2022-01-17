@@ -1,11 +1,10 @@
-use super::components;
+use super::components::*;
 use super::lcn_config;
 use super::requests::*;
 use super::systems;
 
 pub fn run(rx: std::sync::mpsc::Receiver<Request>) {
-    let components = Box::new(components::Components::default());
-    let mut ecs = lame_ecs::Ecs::new(components);
+    let mut world = lame_ecs::create_world!();
     let client = reqwest::blocking::Client::builder()
         .timeout(std::time::Duration::from_secs(1))
         .build()
@@ -14,10 +13,10 @@ pub fn run(rx: std::sync::mpsc::Receiver<Request>) {
 
     loop {
         std::thread::sleep(std::time::Duration::from_secs(1));
-        if !systems::request_processor::process(&mut ecs, &rx) {
+        if !systems::request_processor::process(&mut world, &rx) {
             break;
         }
-        systems::scheduler::process(&mut ecs);
-        systems::lcn_command_executor::process(&mut ecs, &lcn_config, &client);
+        systems::scheduler::process(&mut world);
+        systems::lcn_command_executor::process(&mut world, &lcn_config, &client);
     }
 }

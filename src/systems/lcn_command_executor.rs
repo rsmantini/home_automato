@@ -1,11 +1,11 @@
-use super::super::components::{ActivationState, Components};
+use super::super::components::*;
 use super::super::lcn_config::LcnConfig;
-use lame_ecs::Ecs;
+use lame_ecs::{component_iter, component_iter_mut, World};
 use reqwest::header;
 use serde::Serialize;
 
-pub fn process(ecs: &mut Ecs, config: &LcnConfig, client: &reqwest::blocking::Client) {
-    if !has_command_to_execute(ecs) {
+pub fn process(world: &mut World, config: &LcnConfig, client: &reqwest::blocking::Client) {
+    if !has_command_to_execute(world) {
         return;
     }
     let mdl = get_mdl(config, client);
@@ -13,14 +13,12 @@ pub fn process(ecs: &mut Ecs, config: &LcnConfig, client: &reqwest::blocking::Cl
     if mdl.is_none() {
         return;
     }
-    execute_commands(ecs, config, mdl.unwrap(), client);
+    execute_commands(world, config, mdl.unwrap(), client);
 }
 
-fn has_command_to_execute(ecs: &Ecs) -> bool {
-    let components = lame_ecs::downcast_components::<Components>(ecs.components.as_ref());
-    let range = itertools::izip!(&components.activation_states, &components.lcn_commands)
-        .filter_map(|(a, c)| Some((a.as_ref()?, c.as_ref()?)));
-    for (state, _) in range {
+fn has_command_to_execute(world: &World) -> bool {
+    let range = component_iter!(world, ActivationState, LcnCommand);
+    for (state, _, _) in range {
         if *state == ActivationState::ReadyToRun {
             return true;
         }
@@ -41,16 +39,14 @@ fn get_mdl(config: &LcnConfig, client: &reqwest::blocking::Client) -> Option<i32
 }
 
 fn execute_commands(
-    ecs: &mut Ecs,
+    world: &mut World,
     config: &LcnConfig,
     mdl: i32,
     client: &reqwest::blocking::Client,
 ) {
-    let components = lame_ecs::downcast_components_mut::<Components>(ecs.components.as_mut());
-    let range = itertools::izip!(&mut components.activation_states, &components.lcn_commands)
-        .filter_map(|(a, c)| Some((a.as_mut()?, c.as_ref()?)));
+    let range = component_iter_mut!(world, ActivationState, LcnCommand);
 
-    for (state, command) in range {
+    for (state, command, _) in range {
         if *state != ActivationState::ReadyToRun {
             continue;
         }
