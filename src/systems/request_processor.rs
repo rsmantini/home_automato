@@ -3,15 +3,15 @@ use super::super::requests::*;
 use lame_ecs::{Entity, World};
 use std::sync::mpsc;
 
-pub fn process(world: &mut World, rx: &mpsc::Receiver<Request>) -> bool {
+pub fn process(world: &mut World, rx: &mpsc::Receiver<Request>) -> Result<(), String> {
     let input = rx.try_recv();
     let request = match input {
         Ok(request) => request,
         Err(mpsc::TryRecvError::Empty) => {
-            return true;
+            return Ok(());
         }
         Err(mpsc::TryRecvError::Disconnected) => {
-            return false;
+            return Err("Producer thread diconnected".to_owned());
         }
     };
     match request {
@@ -32,7 +32,7 @@ pub fn process(world: &mut World, rx: &mpsc::Receiver<Request>) -> bool {
             send_response(tx, Response::GetStatus(status), "GetStatus");
         }
     }
-    true
+    Ok(())
 }
 
 fn send_response(tx: mpsc::SyncSender<Response>, response: Response, tag: &str) {
