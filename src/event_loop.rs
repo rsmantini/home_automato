@@ -2,8 +2,9 @@ use super::components::*;
 use super::lcn_config;
 use super::requests::*;
 use super::systems;
+use rocket::tokio::sync::mpsc::UnboundedReceiver;
 
-pub fn run(rx: std::sync::mpsc::Receiver<Request>) -> Result<(), String> {
+pub fn run(mut rx: UnboundedReceiver<Request>) -> Result<(), String> {
     let mut world = lame_ecs::create_world!();
     let client = reqwest::blocking::Client::builder()
         .timeout(std::time::Duration::from_secs(1))
@@ -13,7 +14,7 @@ pub fn run(rx: std::sync::mpsc::Receiver<Request>) -> Result<(), String> {
 
     loop {
         std::thread::sleep(std::time::Duration::from_secs(1));
-        systems::request_processor::process(&mut world, &rx)?;
+        systems::request_processor::process(&mut world, &mut rx)?;
         systems::scheduler::process(&mut world);
         systems::lcn_command_executor::process(&mut world, &lcn_config, &client);
     }

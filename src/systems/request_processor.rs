@@ -1,16 +1,17 @@
-use super::super::components::ActivationState;
+use super::super::components::*;
 use super::super::requests::*;
 use lame_ecs::{Entity, World};
-use std::sync::mpsc;
+use rocket::tokio::sync::mpsc::{error::TryRecvError, UnboundedReceiver};
+use rocket::tokio::sync::oneshot::Sender;
 
-pub fn process(world: &mut World, rx: &mpsc::Receiver<Request>) -> Result<(), String> {
+pub fn process(world: &mut World, rx: &mut UnboundedReceiver<Request>) -> Result<(), String> {
     let input = rx.try_recv();
     let request = match input {
         Ok(request) => request,
-        Err(mpsc::TryRecvError::Empty) => {
+        Err(TryRecvError::Empty) => {
             return Ok(());
         }
-        Err(mpsc::TryRecvError::Disconnected) => {
+        Err(TryRecvError::Disconnected) => {
             return Err("Producer thread diconnected".to_owned());
         }
     };
@@ -35,7 +36,7 @@ pub fn process(world: &mut World, rx: &mpsc::Receiver<Request>) -> Result<(), St
     Ok(())
 }
 
-fn send_response(tx: mpsc::SyncSender<Response>, response: Response, tag: &str) {
+fn send_response(tx: Sender<Response>, response: Response, tag: &str) {
     let result = tx.send(response);
     result.unwrap_or_else(|_| panic!("process_request({}): failed to send response", tag));
 }
