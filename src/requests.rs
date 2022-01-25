@@ -1,15 +1,17 @@
 use super::components::{LcnCommand, Schedule};
 use super::systems::status_reporter::TaskStatus;
 use lame_ecs::Entity;
+use rocket::tokio::sync::{mpsc, oneshot};
 use serde::{Deserialize, Serialize};
-use std::sync::mpsc;
 
+#[derive(Debug)]
 pub enum Request {
-    NewTask((mpsc::SyncSender<Response>, TaskRequest)),
-    RemoveTask((mpsc::SyncSender<Response>, Entity)),
-    GetStatus(mpsc::SyncSender<Response>),
+    NewTask((oneshot::Sender<Response>, TaskRequest)),
+    RemoveTask((oneshot::Sender<Response>, Entity)),
+    GetStatus(oneshot::Sender<Response>),
 }
 
+#[derive(Debug)]
 pub enum Response {
     NewTask(Entity),
     RemoveTask(bool),
@@ -23,18 +25,22 @@ pub struct TaskRequest {
 }
 
 pub fn make_request(
-    tx: &mpsc::SyncSender<Request>,
-    rx: mpsc::Receiver<Response>,
+    tx: &mpsc::UnboundedSender<Request>,
+    mut rx: oneshot::Receiver<Response>,
     request: Request,
 ) -> Result<Response, RequestError> {
-    tx.try_send(request)?;
-    Ok(rx.recv()?)
+    tx.send(request)?;
+    let mut result = Err(oneshot::error::TryRecvError::Empty);
+    while let Err(oneshot::error::TryRecvError::Empty) = result {
+        result = rx.try_recv();
+    }
+    result.map_err(RequestError::from)
 }
 
 #[derive(Debug)]
 pub enum RequestError {
-    Send(mpsc::TrySendError<Request>),
-    Recv(mpsc::RecvError),
+    Send(mpsc::error::SendError<Request>),
+    Recv(oneshot::error::TryRecvError),
 }
 
 impl std::fmt::Display for RequestError {
@@ -46,14 +52,14 @@ impl std::fmt::Display for RequestError {
     }
 }
 
-impl From<mpsc::TrySendError<Request>> for RequestError {
-    fn from(e: mpsc::TrySendError<Request>) -> Self {
+impl From<mpsc::error::SendError<Request>> for RequestError {
+    fn from(e: mpsc::error::SendError<Request>) -> Self {
         RequestError::Send(e)
     }
 }
 
-impl From<mpsc::RecvError> for RequestError {
-    fn from(e: mpsc::RecvError) -> Self {
+impl From<oneshot::error::TryRecvError> for RequestError {
+    fn from(e: oneshot::error::TryRecvError) -> Self {
         RequestError::Recv(e)
     }
 }

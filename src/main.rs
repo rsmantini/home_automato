@@ -1,7 +1,7 @@
 use requests::*;
 use rocket::serde::json::Json;
-use rocket::{get, launch, post, routes, State};
-use std::sync::mpsc;
+use rocket::{get, launch, post, routes, tokio, State};
+use tokio::sync::{mpsc, mpsc::UnboundedSender};
 
 mod components;
 mod event_loop;
@@ -11,10 +11,10 @@ mod systems;
 
 #[post("/new_lcn_task", data = "<task>")]
 fn lcn_task_producer(
-    global_tx: &State<mpsc::SyncSender<Request>>,
+    global_tx: &State<UnboundedSender<Request>>,
     task: Json<TaskRequest>,
 ) -> String {
-    let (tx, rx) = mpsc::sync_channel(1);
+    let (tx, rx) = tokio::sync::oneshot::channel();
     let request = Request::NewTask((tx, task.into_inner()));
     let response = make_request(global_tx, rx, request);
     match response {
@@ -28,8 +28,8 @@ fn lcn_task_producer(
 }
 
 #[get("/remove_task/<id>")]
-fn remove_task(global_tx: &State<mpsc::SyncSender<Request>>, id: i64) -> String {
-    let (tx, rx) = mpsc::sync_channel(1);
+fn remove_task(global_tx: &State<mpsc::UnboundedSender<Request>>, id: i64) -> String {
+    let (tx, rx) = tokio::sync::oneshot::channel();
     let request = Request::RemoveTask((tx, lame_ecs::Entity::new(id)));
     let response = make_request(global_tx, rx, request);
     match response {
@@ -47,8 +47,8 @@ fn remove_task(global_tx: &State<mpsc::SyncSender<Request>>, id: i64) -> String 
 }
 
 #[get("/get_status")]
-fn get_status(global_tx: &State<mpsc::SyncSender<Request>>) -> String {
-    let (tx, rx) = mpsc::sync_channel(1);
+fn get_status(global_tx: &State<mpsc::UnboundedSender<Request>>) -> String {
+    let (tx, rx) = tokio::sync::oneshot::channel();
     let response = make_request(global_tx, rx, Request::GetStatus(tx));
     match response {
         Ok(Response::GetStatus(status)) => serde_json::to_string(&status).unwrap(),
@@ -64,7 +64,7 @@ fn index() -> rocket_dyn_templates::Template {
 
 #[launch]
 fn rocket() -> _ {
-    let (tx, rx) = mpsc::sync_channel(100);
+    let (tx, rx) = mpsc::unbounded_channel();
     std::thread::spawn(move || event_loop::run(rx));
     rocket::build()
         .manage(tx)
