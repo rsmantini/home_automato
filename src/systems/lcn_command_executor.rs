@@ -1,19 +1,25 @@
 use super::super::components::*;
-use super::super::lcn_config::LcnConfig;
+use super::super::lcn;
 use lame_ecs::{component_iter, component_iter_mut, World};
+use lcn::LcnClient;
 use reqwest::header;
 use serde::Serialize;
 
-pub fn process(world: &mut World, config: &LcnConfig, client: &reqwest::blocking::Client) {
+pub fn process(world: &mut World, client: &LcnClient) {
     if !has_command_to_execute(world) {
         return;
     }
-    let mdl = get_mdl(config, client);
+    let mdl = get_mdl(&client.http_client, &client.home_url);
     println!("executor: mdl request result: {:?}", mdl);
     if mdl.is_none() {
         return;
     }
-    execute_commands(world, config, mdl.unwrap(), client);
+    execute_commands(
+        world,
+        &client.http_client,
+        &client.command_url,
+        mdl.unwrap(),
+    );
 }
 
 fn has_command_to_execute(world: &World) -> bool {
@@ -26,11 +32,10 @@ fn has_command_to_execute(world: &World) -> bool {
     false
 }
 
-fn get_mdl(config: &LcnConfig, client: &reqwest::blocking::Client) -> Option<i32> {
+fn get_mdl(client: &reqwest::blocking::Client, home_url: &str) -> Option<i32> {
     let res = client
-        .get(&config.home_url)
+        .get(home_url)
         .header(header::CONTENT_TYPE, "application/json")
-        .header(header::COOKIE, &config.cookie)
         .send()
         .ok()?
         .text()
@@ -40,9 +45,9 @@ fn get_mdl(config: &LcnConfig, client: &reqwest::blocking::Client) -> Option<i32
 
 fn execute_commands(
     world: &mut World,
-    config: &LcnConfig,
-    mdl: i32,
     client: &reqwest::blocking::Client,
+    command_url: &str,
+    mdl: i32,
 ) {
     let range = component_iter_mut!(world, ActivationState, LcnCommand);
 
@@ -58,9 +63,8 @@ fn execute_commands(
         };
 
         let command_response = client
-            .post(&config.command_url)
+            .post(command_url)
             .header(header::CONTENT_TYPE, "application/json")
-            .header(header::COOKIE, &config.cookie)
             .json(&r)
             .send();
         if command_response.is_ok() {

@@ -1,4 +1,4 @@
 /target
 .vscode/
-lcn_config.json
+lcn_auth
 Rocket.toml

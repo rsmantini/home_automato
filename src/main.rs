@@ -5,7 +5,7 @@ use tokio::sync::{mpsc, mpsc::UnboundedSender};
 
 mod components;
 mod event_loop;
-mod lcn_config;
+mod lcn;
 mod requests;
 mod systems;
 
